@@ -1,0 +1,1469 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <chrono>
+#include <ctime>
+using namespace std;
+
+bool check_correctness(fstream& fout,string cl_order_id,string instrument,int side_number,int starting_quantity_number,int price_number){
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    struct tm localTimeInfo;
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    localtime_s(&localTimeInfo, &currentTime); 
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);
+    string formattedTime(buffer);
+    formattedTime=formattedTime+"."+to_string(milliseconds.count());
+
+    if(cl_order_id==""){
+        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());fout<<cl_order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Reject "<<","<<starting_quantity_number<<","<<price_number<<","<<"Invalid order id "<<","<<formattedTime<<"\n";
+        return true;
+    }
+    if(!(instrument=="Rose" || instrument=="Lavender" || instrument=="Lotus" || instrument=="Tulip" || instrument=="Orchid") ){
+        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());fout<<cl_order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Reject "<<","<<starting_quantity_number<<","<<price_number<<","<<"Invalid instrument "<<","<<formattedTime<<"\n";
+        return true;
+    }
+    if(!(side_number ==1 || side_number==2)){
+        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());fout<<cl_order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Reject "<<","<<starting_quantity_number<<","<<price_number<<","<<"Invalid side "<<","<<formattedTime<<"\n";
+        return true;
+    }
+    if(price_number<=0){
+        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());fout<<cl_order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Reject "<<","<<starting_quantity_number<<","<<price_number<<","<<"Invalid price "<<","<<formattedTime<<"\n";
+        return true;
+    }
+    if(starting_quantity_number%10 !=0 || (starting_quantity_number<10 || starting_quantity_number >1000)){
+        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());fout<<cl_order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Reject"<<","<<starting_quantity_number<<","<<price_number<<","<<"Invalid quantity"<<","<<formattedTime<<"\n";
+        return true;
+    }
+
+    return false;
+
+}
+
+int main(){
+    //getting time
+    std::chrono::system_clock::time_point now = std::chrono::system_clock::now();
+    struct tm localTimeInfo;
+    std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+    localtime_s(&localTimeInfo, &currentTime); 
+    auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    char buffer[20];
+    std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);
+    string formattedTime(buffer);
+    formattedTime=formattedTime+"."+to_string(milliseconds.count());//print formatted time
+    
+
+
+    ifstream file;
+    string path="Here_fil_the_path_to_your_csv_file";
+    file.open("Bigdataset.csv");
+    string line;
+    string cl_order_id,instrument,side,starting_quantity,price;
+    // getline(file,line);
+    bool first_buy_rose=true;
+    bool first_sell_rose=true;
+    bool first_buy_Lavender=true;
+    bool first_sell_Lavender=true;
+    bool first_buy_Lotus=true;
+    bool first_sell_Lotus=true;
+    bool first_buy_Tulip=true;
+    bool first_sell_Tulip=true;
+    bool first_buy_Orchid=true;
+    bool first_sell_Orchid=true;
+
+    /// rose variables//////////////////////////
+    vector<string> order_id_vector_buy_rose;
+    vector<string> cl_order_id_vector_buy_rose;
+    vector<string> instrument_vector_buy_rose;
+    
+    vector<int> starting_quantity_vector_buy_rose;
+    vector<int> current_quantity_vector_buy_rose;
+    vector<int> price_vector_buy_rose;
+    vector<int> side_vector_buy_rose;
+
+    vector<string> order_id_vector_sell_rose;
+    vector<string> cl_order_id_vector_sell_rose;
+    vector<string> instrument_vector_sell_rose;
+    
+    vector<int> starting_quantity_vector_sell_rose;
+    vector<int> current_quantity_vector_sell_rose;
+    vector<int> price_vector_sell_rose;
+    vector<int> side_vector_sell_rose;
+    ////////////////////////////////////
+
+    //////lavender variables////////
+    vector<string> order_id_vector_buy_Lavender;
+    vector<string> cl_order_id_vector_buy_Lavender;
+    vector<string> instrument_vector_buy_Lavender;
+    
+    vector<int> starting_quantity_vector_buy_Lavender;
+    vector<int> current_quantity_vector_buy_Lavender;
+    vector<int> price_vector_buy_Lavender;
+    vector<int> side_vector_buy_Lavender;
+
+    vector<string> order_id_vector_sell_Lavender;
+    vector<string> cl_order_id_vector_sell_Lavender;
+    vector<string> instrument_vector_sell_Lavender;
+    
+    vector<int> starting_quantity_vector_sell_Lavender;
+    vector<int> current_quantity_vector_sell_Lavender;
+    vector<int> price_vector_sell_Lavender;
+    vector<int> side_vector_sell_Lavender;
+    ////////////////////////////////////
+
+    //////////lotus variables//////////
+    vector<string> order_id_vector_buy_Lotus;
+    vector<string> cl_order_id_vector_buy_Lotus;
+    vector<string> instrument_vector_buy_Lotus;
+    
+    vector<int> starting_quantity_vector_buy_Lotus;
+    vector<int> current_quantity_vector_buy_Lotus;
+    vector<int> price_vector_buy_Lotus;
+    vector<int> side_vector_buy_Lotus;
+
+    vector<string> order_id_vector_sell_Lotus;
+    vector<string> cl_order_id_vector_sell_Lotus;
+    vector<string> instrument_vector_sell_Lotus;
+    
+    vector<int> starting_quantity_vector_sell_Lotus;
+    vector<int> current_quantity_vector_sell_Lotus;
+    vector<int> price_vector_sell_Lotus;
+    vector<int> side_vector_sell_Lotus;
+    ////////////////////////////////////
+    //////////tulip//////////
+    vector<string> order_id_vector_buy_Tulip;
+    vector<string> cl_order_id_vector_buy_Tulip;
+    vector<string> instrument_vector_buy_Tulip;
+    
+    vector<int> starting_quantity_vector_buy_Tulip;
+    vector<int> current_quantity_vector_buy_Tulip;
+    vector<int> price_vector_buy_Tulip;
+    vector<int> side_vector_buy_Tulip;
+
+    vector<string> order_id_vector_sell_Tulip;
+    vector<string> cl_order_id_vector_sell_Tulip;
+    vector<string> instrument_vector_sell_Tulip;
+    
+    vector<int> starting_quantity_vector_sell_Tulip;
+    vector<int> current_quantity_vector_sell_Tulip;
+    vector<int> price_vector_sell_Tulip;
+    vector<int> side_vector_sell_Tulip;
+    ////////////////////////////////////
+    /////////////orchid////////
+    vector<string> order_id_vector_buy_Orchid;
+    vector<string> cl_order_id_vector_buy_Orchid;
+    vector<string> instrument_vector_buy_Orchid;
+    
+    vector<int> starting_quantity_vector_buy_Orchid;
+    vector<int> current_quantity_vector_buy_Orchid;
+    vector<int> price_vector_buy_Orchid;
+    vector<int> side_vector_buy_Orchid;
+
+    vector<string> order_id_vector_sell_Orchid;
+    vector<string> cl_order_id_vector_sell_Orchid;
+    vector<string> instrument_vector_sell_Orchid;
+    
+    vector<int> starting_quantity_vector_sell_Orchid;
+    vector<int> current_quantity_vector_sell_Orchid;
+    vector<int> price_vector_sell_Orchid;
+    vector<int> side_vector_sell_Orchid;
+    ////////////////////////////////////
+    
+    ///////////////////////////
+    /////////////////////////
+    //////////////////////
+
+    fstream fout;
+    fout.open("execution_rep.csv", ios::out | ios::app);
+    fout << "Order ID" << ", "<< "Cl. Ord. ID" << ", "<< "Isntrument" << ", " << "Side" << ", "<< "Execution Status" << ", "<< "Qunatity"<<","<< "Price"<<","<<"Reason"<<","<<"Transaction Time"<<"\n";
+    int orderid=1;
+    while(getline(file,line)){
+        
+        stringstream s(line);        
+        getline(s,cl_order_id,',');        
+        getline(s,instrument,',');       
+        getline(s,side,',');        
+        getline(s,starting_quantity,',');        
+        getline(s,price,',');
+        string order_id="ord"+to_string(orderid);
+        bool error=false;
+        int starting_quantity_number;
+        int current_quantity_number;
+        int price_number;
+        int side_number;
+
+        try
+        {
+            starting_quantity_number=stoi(starting_quantity);
+            current_quantity_number=starting_quantity_number;
+            price_number=stoi(price);
+            side_number=stoi(side);
+        }
+        catch(const std::exception& e)
+        {
+            error=true;
+        }
+        
+        
+        if(check_correctness(fout,cl_order_id,instrument,side_number,starting_quantity_number,price_number) || error){continue;}
+        //rose orders processing
+        if(instrument=="Rose"){
+                  if(side=="1" && first_buy_rose){
+            first_buy_rose=false;
+            if(first_sell_rose){
+                order_id_vector_buy_rose.push_back(order_id);
+                cl_order_id_vector_buy_rose.push_back(cl_order_id);
+                instrument_vector_buy_rose.push_back(instrument);
+                side_vector_buy_rose.push_back(side_number);
+                starting_quantity_vector_buy_rose.push_back(starting_quantity_number);
+                current_quantity_vector_buy_rose.push_back(current_quantity_number);
+                price_vector_buy_rose.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                int size=price_vector_sell_rose.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_sell_rose[i]==0){continue;}
+                    if(price_number>=price_vector_sell_rose[i]){
+                        if(current_quantity_vector_sell_rose[i]>=current_quantity_number){
+                            current_quantity_vector_sell_rose[i]=current_quantity_vector_sell_rose[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+     
+                        if(current_quantity_vector_sell_rose[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                                           
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_sell_rose[i];
+                            int transaction_quantity=current_quantity_vector_sell_rose[i];
+                            current_quantity_vector_sell_rose[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                            
+                        }
+                    }
+                    if(price_number<price_vector_sell_rose[i]  || current_quantity_number==0){
+                        break;
+                    }
+                    
+                }
+                if(starting_quantity_number==current_quantity_number){
+                    now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                    fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+            order_id_vector_buy_rose.push_back(order_id);
+            cl_order_id_vector_buy_rose.push_back(cl_order_id);
+            instrument_vector_buy_rose.push_back(instrument);
+            side_vector_buy_rose.push_back(side_number);
+            starting_quantity_vector_buy_rose.push_back(starting_quantity_number);
+            current_quantity_vector_buy_rose.push_back(current_quantity_number);
+            price_vector_buy_rose.push_back(price_number);
+
+            }
+            
+        }
+        else if(side=="1"){
+            
+            int size=price_vector_sell_rose.size();
+            
+            for(int i=0;i<size;i++){ 
+                
+                
+                if(current_quantity_vector_sell_rose[i]==0){continue;}
+                if(price_number>=price_vector_sell_rose[i]){
+                    if(current_quantity_vector_sell_rose[i]>=current_quantity_number){
+                        current_quantity_vector_sell_rose[i]=current_quantity_vector_sell_rose[i]-current_quantity_number;
+                        
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_sell_rose[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                       
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_sell_rose[i];
+                        int transaction_quantity=current_quantity_vector_sell_rose[i];
+                        current_quantity_vector_sell_rose[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_sell_rose[i]<<","<<cl_order_id_vector_sell_rose[i]<<","<<instrument_vector_sell_rose[i]<<","<<side_vector_sell_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        
+                    }
+                }
+                if(price_number<price_vector_sell_rose[i]  || current_quantity_number==0){
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_buy=price_vector_buy_rose.size();
+            while(price_vector_buy_rose[index]>=price_number && index<size_buy){
+                index+=1;
+            }
+            order_id_vector_buy_rose.insert(order_id_vector_buy_rose.begin()+index,order_id);
+            cl_order_id_vector_buy_rose.insert(cl_order_id_vector_buy_rose.begin()+index,cl_order_id);
+            instrument_vector_buy_rose.insert(instrument_vector_buy_rose.begin()+index,instrument);
+            side_vector_buy_rose.insert(side_vector_buy_rose.begin()+index,side_number);
+            starting_quantity_vector_buy_rose.insert(starting_quantity_vector_buy_rose.begin()+index,starting_quantity_number);
+            current_quantity_vector_buy_rose.insert(current_quantity_vector_buy_rose.begin()+index,current_quantity_number);
+            price_vector_buy_rose.insert(price_vector_buy_rose.begin()+index,price_number);
+            
+            
+        }
+        else if(side=="2" && first_sell_rose){
+            if(first_buy_rose){
+                first_sell_rose=false;
+                order_id_vector_sell_rose.push_back(order_id);
+                cl_order_id_vector_sell_rose.push_back(cl_order_id);
+                instrument_vector_sell_rose.push_back(instrument);
+                side_vector_sell_rose.push_back(side_number);
+                starting_quantity_vector_sell_rose.push_back(starting_quantity_number);
+                current_quantity_vector_sell_rose.push_back(current_quantity_number);
+                price_vector_sell_rose.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                size_t size=price_vector_buy_rose.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_buy_rose[i]==0){continue;}
+                    if(price_number<=price_vector_buy_rose[i]){
+                        
+                        if(current_quantity_number<=current_quantity_vector_buy_rose[i]){
+                            current_quantity_vector_buy_rose[i]=current_quantity_vector_buy_rose[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_rose[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_buy_rose[i];
+                            int transaction_quantity=current_quantity_vector_buy_rose[i];
+                            current_quantity_vector_buy_rose[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                    }
+                    if(price_number>price_vector_buy_rose[i] || current_quantity_number==0){
+                        break;
+                    }
+                }
+                
+                
+                if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_sell_rose.push_back(order_id);
+                cl_order_id_vector_sell_rose.push_back(cl_order_id);
+                instrument_vector_sell_rose.push_back(instrument);
+                side_vector_sell_rose.push_back(side_number);
+                starting_quantity_vector_sell_rose.push_back(starting_quantity_number);
+                current_quantity_vector_sell_rose.push_back(current_quantity_number);
+                price_vector_sell_rose.push_back(price_number);
+
+             }
+            
+        }
+        else{
+            
+            size_t size=price_vector_buy_rose.size();
+            for(int i=0;i<size;i++){
+                if(current_quantity_vector_buy_rose[i]==0){continue;}
+                if(price_number<=price_vector_buy_rose[i]){
+                    if(current_quantity_number<=current_quantity_vector_buy_rose[i]){
+                        current_quantity_vector_buy_rose[i]=current_quantity_vector_buy_rose[i]-current_quantity_number;
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_rose[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_buy_rose[i];
+                        int transaction_quantity=current_quantity_vector_buy_rose[i];
+                        current_quantity_vector_buy_rose[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_buy_rose[i]<<","<<cl_order_id_vector_buy_rose[i]<<","<<instrument_vector_buy_rose[i]<<","<<side_vector_buy_rose[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_rose[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                    }
+                }
+                if(price_number<price_vector_buy_rose[i] || current_quantity_number==0){
+                    
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_sell=price_vector_sell_rose.size();
+            while(price_vector_sell_rose[index]<=price_number && index<size_sell){
+                index+=1;
+            }  
+            order_id_vector_sell_rose.insert(order_id_vector_sell_rose.begin()+index,order_id);
+            cl_order_id_vector_sell_rose.insert(cl_order_id_vector_sell_rose.begin()+index,cl_order_id);
+            instrument_vector_sell_rose.insert(instrument_vector_sell_rose.begin()+index,instrument);
+            side_vector_sell_rose.insert(side_vector_sell_rose.begin()+index,side_number);
+            starting_quantity_vector_sell_rose.insert(starting_quantity_vector_sell_rose.begin()+index,starting_quantity_number);
+            current_quantity_vector_sell_rose.insert(current_quantity_vector_sell_rose.begin()+index,current_quantity_number);
+            price_vector_sell_rose.insert(price_vector_sell_rose.begin()+index,price_number);
+            
+        }       
+        //Lavender orders processing
+        }else if(instrument=="Lavender"){
+                   if(side=="1" && first_buy_Lavender){
+            first_buy_Lavender=false;
+            if(first_sell_Lavender){
+                order_id_vector_buy_Lavender.push_back(order_id);
+                cl_order_id_vector_buy_Lavender.push_back(cl_order_id);
+                instrument_vector_buy_Lavender.push_back(instrument);
+                side_vector_buy_Lavender.push_back(side_number);
+                starting_quantity_vector_buy_Lavender.push_back(starting_quantity_number);
+                current_quantity_vector_buy_Lavender.push_back(current_quantity_number);
+                price_vector_buy_Lavender.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                int size=price_vector_sell_Lavender.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_sell_Lavender[i]==0){continue;}
+                    if(price_number>=price_vector_sell_Lavender[i]){
+                        if(current_quantity_vector_sell_Lavender[i]>=current_quantity_number){
+                            current_quantity_vector_sell_Lavender[i]=current_quantity_vector_sell_Lavender[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+     
+                        if(current_quantity_vector_sell_Lavender[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                                           
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_sell_Lavender[i];
+                            int transaction_quantity=current_quantity_vector_sell_Lavender[i];
+                            current_quantity_vector_sell_Lavender[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                            
+                        }
+                    }
+                    if(price_number<price_vector_sell_Lavender[i]  || current_quantity_number==0){
+                        break;
+                    }
+                    
+                }
+                if(starting_quantity_number==current_quantity_number){
+                    now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                    fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_buy_Lavender.push_back(order_id);
+                cl_order_id_vector_buy_Lavender.push_back(cl_order_id);
+                instrument_vector_buy_Lavender.push_back(instrument);
+                side_vector_buy_Lavender.push_back(side_number);
+                starting_quantity_vector_buy_Lavender.push_back(starting_quantity_number);
+                current_quantity_vector_buy_Lavender.push_back(current_quantity_number);
+                price_vector_buy_Lavender.push_back(price_number);
+
+            }
+            
+        }
+        else if(side=="1"){
+            
+            int size=price_vector_sell_Lavender.size();
+            
+            for(int i=0;i<size;i++){ 
+                
+                
+                if(current_quantity_vector_sell_Lavender[i]==0){continue;}
+                if(price_number>=price_vector_sell_Lavender[i]){
+                    if(current_quantity_vector_sell_Lavender[i]>=current_quantity_number){
+                        current_quantity_vector_sell_Lavender[i]=current_quantity_vector_sell_Lavender[i]-current_quantity_number;
+                        
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_sell_Lavender[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                       
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_sell_Lavender[i];
+                        int transaction_quantity=current_quantity_vector_sell_Lavender[i];
+                        current_quantity_vector_sell_Lavender[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_sell_Lavender[i]<<","<<cl_order_id_vector_sell_Lavender[i]<<","<<instrument_vector_sell_Lavender[i]<<","<<side_vector_sell_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        
+                    }
+                }
+                if(price_number<price_vector_sell_Lavender[i]  || current_quantity_number==0){
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_buy=price_vector_buy_Lavender.size();
+            while(price_vector_buy_Lavender[index]>=price_number && index<size_buy){
+                index+=1;
+            }
+            order_id_vector_buy_Lavender.insert(order_id_vector_buy_Lavender.begin()+index,order_id);
+            cl_order_id_vector_buy_Lavender.insert(cl_order_id_vector_buy_Lavender.begin()+index,cl_order_id);
+            instrument_vector_buy_Lavender.insert(instrument_vector_buy_Lavender.begin()+index,instrument);
+            side_vector_buy_Lavender.insert(side_vector_buy_Lavender.begin()+index,side_number);
+            starting_quantity_vector_buy_Lavender.insert(starting_quantity_vector_buy_Lavender.begin()+index,starting_quantity_number);
+            current_quantity_vector_buy_Lavender.insert(current_quantity_vector_buy_Lavender.begin()+index,current_quantity_number);
+            price_vector_buy_Lavender.insert(price_vector_buy_Lavender.begin()+index,price_number);
+            
+            
+        }
+        else if(side=="2" && first_sell_Lavender){
+            if(first_buy_Lavender){
+                first_sell_Lavender=false;
+                order_id_vector_sell_Lavender.push_back(order_id);
+                cl_order_id_vector_sell_Lavender.push_back(cl_order_id);
+                instrument_vector_sell_Lavender.push_back(instrument);
+                side_vector_sell_Lavender.push_back(side_number);
+                starting_quantity_vector_sell_Lavender.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Lavender.push_back(current_quantity_number);
+                price_vector_sell_Lavender.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                size_t size=price_vector_buy_Lavender.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_buy_Lavender[i]==0){continue;}
+                    if(price_number<=price_vector_buy_Lavender[i]){
+                        
+                        if(current_quantity_number<=current_quantity_vector_buy_Lavender[i]){
+                            current_quantity_vector_buy_Lavender[i]=current_quantity_vector_buy_Lavender[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Lavender[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_buy_Lavender[i];
+                            int transaction_quantity=current_quantity_vector_buy_Lavender[i];
+                            current_quantity_vector_buy_Lavender[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                    }
+                    if(price_number>price_vector_buy_Lavender[i] || current_quantity_number==0){
+                        break;
+                    }
+                }
+                
+                
+                if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_sell_Lavender.push_back(order_id);
+                cl_order_id_vector_sell_Lavender.push_back(cl_order_id);
+                instrument_vector_sell_Lavender.push_back(instrument);
+                side_vector_sell_Lavender.push_back(side_number);
+                starting_quantity_vector_sell_Lavender.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Lavender.push_back(current_quantity_number);
+                price_vector_sell_Lavender.push_back(price_number);
+
+             }
+            
+        }
+        else{
+            
+            size_t size=price_vector_buy_Lavender.size();
+            for(int i=0;i<size;i++){
+                if(current_quantity_vector_buy_Lavender[i]==0){continue;}
+                if(price_number<=price_vector_buy_Lavender[i]){
+                    if(current_quantity_number<=current_quantity_vector_buy_Lavender[i]){
+                        current_quantity_vector_buy_Lavender[i]=current_quantity_vector_buy_Lavender[i]-current_quantity_number;
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Lavender[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_buy_Lavender[i];
+                        int transaction_quantity=current_quantity_vector_buy_Lavender[i];
+                        current_quantity_vector_buy_Lavender[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_buy_Lavender[i]<<","<<cl_order_id_vector_buy_Lavender[i]<<","<<instrument_vector_buy_Lavender[i]<<","<<side_vector_buy_Lavender[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lavender[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                    }
+                }
+                if(price_number<price_vector_buy_Lavender[i] || current_quantity_number==0){
+                    
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_sell=price_vector_sell_Lavender.size();
+            while(price_vector_sell_Lavender[index]<=price_number && index<size_sell){
+                index+=1;
+            }  
+            order_id_vector_sell_Lavender.insert(order_id_vector_sell_Lavender.begin()+index,order_id);
+            cl_order_id_vector_sell_Lavender.insert(cl_order_id_vector_sell_Lavender.begin()+index,cl_order_id);
+            instrument_vector_sell_Lavender.insert(instrument_vector_sell_Lavender.begin()+index,instrument);
+            side_vector_sell_Lavender.insert(side_vector_sell_Lavender.begin()+index,side_number);
+            starting_quantity_vector_sell_Lavender.insert(starting_quantity_vector_sell_Lavender.begin()+index,starting_quantity_number);
+            current_quantity_vector_sell_Lavender.insert(current_quantity_vector_sell_Lavender.begin()+index,current_quantity_number);
+            price_vector_sell_Lavender.insert(price_vector_sell_Lavender.begin()+index,price_number);
+            
+        } 
+        //Lotus orders processing
+        }else if(instrument=="Lotus"){
+                  if(side=="1" && first_buy_Lotus){
+            first_buy_Lotus=false;
+            if(first_sell_Lotus){
+                order_id_vector_buy_Lotus.push_back(order_id);
+                cl_order_id_vector_buy_Lotus.push_back(cl_order_id);
+                instrument_vector_buy_Lotus.push_back(instrument);
+                side_vector_buy_Lotus.push_back(side_number);
+                starting_quantity_vector_buy_Lotus.push_back(starting_quantity_number);
+                current_quantity_vector_buy_Lotus.push_back(current_quantity_number);
+                price_vector_buy_Lotus.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                int size=price_vector_sell_Lotus.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_sell_Lotus[i]==0){continue;}
+                    if(price_number>=price_vector_sell_Lotus[i]){
+                        if(current_quantity_vector_sell_Lotus[i]>=current_quantity_number){
+                            current_quantity_vector_sell_Lotus[i]=current_quantity_vector_sell_Lotus[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+     
+                        if(current_quantity_vector_sell_Lotus[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                                           
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_sell_Lotus[i];
+                            int transaction_quantity=current_quantity_vector_sell_Lotus[i];
+                            current_quantity_vector_sell_Lotus[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                            
+                        }
+                    }
+                    if(price_number<price_vector_sell_Lotus[i]  || current_quantity_number==0){
+                        break;
+                    }
+                    
+                }
+                if(starting_quantity_number==current_quantity_number){
+                    now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                    fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+            order_id_vector_buy_Lotus.push_back(order_id);
+            cl_order_id_vector_buy_Lotus.push_back(cl_order_id);
+            instrument_vector_buy_Lotus.push_back(instrument);
+            side_vector_buy_Lotus.push_back(side_number);
+            starting_quantity_vector_buy_Lotus.push_back(starting_quantity_number);
+            current_quantity_vector_buy_Lotus.push_back(current_quantity_number);
+            price_vector_buy_Lotus.push_back(price_number);
+
+            }
+            
+        }
+        else if(side=="1"){
+            
+            int size=price_vector_sell_Lotus.size();
+            
+            for(int i=0;i<size;i++){ 
+                
+                
+                if(current_quantity_vector_sell_Lotus[i]==0){continue;}
+                if(price_number>=price_vector_sell_Lotus[i]){
+                    if(current_quantity_vector_sell_Lotus[i]>=current_quantity_number){
+                        current_quantity_vector_sell_Lotus[i]=current_quantity_vector_sell_Lotus[i]-current_quantity_number;
+                        
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_sell_Lotus[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                       
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_sell_Lotus[i];
+                        int transaction_quantity=current_quantity_vector_sell_Lotus[i];
+                        current_quantity_vector_sell_Lotus[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_sell_Lotus[i]<<","<<cl_order_id_vector_sell_Lotus[i]<<","<<instrument_vector_sell_Lotus[i]<<","<<side_vector_sell_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        
+                    }
+                }
+                if(price_number<price_vector_sell_Lotus[i]  || current_quantity_number==0){
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_buy=price_vector_buy_Lotus.size();
+            while(price_vector_buy_Lotus[index]>=price_number && index<size_buy){
+                index+=1;
+            }
+            order_id_vector_buy_Lotus.insert(order_id_vector_buy_Lotus.begin()+index,order_id);
+            cl_order_id_vector_buy_Lotus.insert(cl_order_id_vector_buy_Lotus.begin()+index,cl_order_id);
+            instrument_vector_buy_Lotus.insert(instrument_vector_buy_Lotus.begin()+index,instrument);
+            side_vector_buy_Lotus.insert(side_vector_buy_Lotus.begin()+index,side_number);
+            starting_quantity_vector_buy_Lotus.insert(starting_quantity_vector_buy_Lotus.begin()+index,starting_quantity_number);
+            current_quantity_vector_buy_Lotus.insert(current_quantity_vector_buy_Lotus.begin()+index,current_quantity_number);
+            price_vector_buy_Lotus.insert(price_vector_buy_Lotus.begin()+index,price_number);
+            
+            
+        }
+        else if(side=="2" && first_sell_Lotus){
+            if(first_buy_Lotus){
+                first_sell_Lotus=false;
+                order_id_vector_sell_Lotus.push_back(order_id);
+                cl_order_id_vector_sell_Lotus.push_back(cl_order_id);
+                instrument_vector_sell_Lotus.push_back(instrument);
+                side_vector_sell_Lotus.push_back(side_number);
+                starting_quantity_vector_sell_Lotus.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Lotus.push_back(current_quantity_number);
+                price_vector_sell_Lotus.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                size_t size=price_vector_buy_Lotus.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_buy_Lotus[i]==0){continue;}
+                    if(price_number<=price_vector_buy_Lotus[i]){
+                        
+                        if(current_quantity_number<=current_quantity_vector_buy_Lotus[i]){
+                            current_quantity_vector_buy_Lotus[i]=current_quantity_vector_buy_Lotus[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Lotus[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_buy_Lotus[i];
+                            int transaction_quantity=current_quantity_vector_buy_Lotus[i];
+                            current_quantity_vector_buy_Lotus[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                    }
+                    if(price_number>price_vector_buy_Lotus[i] || current_quantity_number==0){
+                        break;
+                    }
+                }
+                
+                
+                if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_sell_Lotus.push_back(order_id);
+                cl_order_id_vector_sell_Lotus.push_back(cl_order_id);
+                instrument_vector_sell_Lotus.push_back(instrument);
+                side_vector_sell_Lotus.push_back(side_number);
+                starting_quantity_vector_sell_Lotus.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Lotus.push_back(current_quantity_number);
+                price_vector_sell_Lotus.push_back(price_number);
+
+             }
+            
+        }
+        else{
+            
+            size_t size=price_vector_buy_Lotus.size();
+            for(int i=0;i<size;i++){
+                if(current_quantity_vector_buy_Lotus[i]==0){continue;}
+                if(price_number<=price_vector_buy_Lotus[i]){
+                    if(current_quantity_number<=current_quantity_vector_buy_Lotus[i]){
+                        current_quantity_vector_buy_Lotus[i]=current_quantity_vector_buy_Lotus[i]-current_quantity_number;
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Lotus[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_buy_Lotus[i];
+                        int transaction_quantity=current_quantity_vector_buy_Lotus[i];
+                        current_quantity_vector_buy_Lotus[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_buy_Lotus[i]<<","<<cl_order_id_vector_buy_Lotus[i]<<","<<instrument_vector_buy_Lotus[i]<<","<<side_vector_buy_Lotus[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Lotus[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                    }
+                }
+                if(price_number<price_vector_buy_Lotus[i] || current_quantity_number==0){
+                    
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_sell=price_vector_sell_Lotus.size();
+            while(price_vector_sell_Lotus[index]<=price_number && index<size_sell){
+                index+=1;
+            }  
+            order_id_vector_sell_Lotus.insert(order_id_vector_sell_Lotus.begin()+index,order_id);
+            cl_order_id_vector_sell_Lotus.insert(cl_order_id_vector_sell_Lotus.begin()+index,cl_order_id);
+            instrument_vector_sell_Lotus.insert(instrument_vector_sell_Lotus.begin()+index,instrument);
+            side_vector_sell_Lotus.insert(side_vector_sell_Lotus.begin()+index,side_number);
+            starting_quantity_vector_sell_Lotus.insert(starting_quantity_vector_sell_Lotus.begin()+index,starting_quantity_number);
+            current_quantity_vector_sell_Lotus.insert(current_quantity_vector_sell_Lotus.begin()+index,current_quantity_number);
+            price_vector_sell_Lotus.insert(price_vector_sell_Lotus.begin()+index,price_number);
+            
+        }       
+        //Tulip orders processing
+        }else if(instrument=="Tulip"){
+                   if(side=="1" && first_buy_Tulip){
+            first_buy_Tulip=false;
+            if(first_sell_Tulip){
+                order_id_vector_buy_Tulip.push_back(order_id);
+                cl_order_id_vector_buy_Tulip.push_back(cl_order_id);
+                instrument_vector_buy_Tulip.push_back(instrument);
+                side_vector_buy_Tulip.push_back(side_number);
+                starting_quantity_vector_buy_Tulip.push_back(starting_quantity_number);
+                current_quantity_vector_buy_Tulip.push_back(current_quantity_number);
+                price_vector_buy_Tulip.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                int size=price_vector_sell_Tulip.size();
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_sell_Tulip[i]==0){continue;}
+                    if(price_number>=price_vector_sell_Tulip[i]){
+                        if(current_quantity_vector_sell_Tulip[i]>=current_quantity_number){
+                            current_quantity_vector_sell_Tulip[i]=current_quantity_vector_sell_Tulip[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+     
+                        if(current_quantity_vector_sell_Tulip[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                                           
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_sell_Tulip[i];
+                            int transaction_quantity=current_quantity_vector_sell_Tulip[i];
+                            current_quantity_vector_sell_Tulip[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                            
+                        }
+                    }
+                    if(price_number<price_vector_sell_Tulip[i]  || current_quantity_number==0){
+                        break;
+                    }
+                    
+                }
+                if(starting_quantity_number==current_quantity_number){
+                    now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                    fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+            order_id_vector_buy_Tulip.push_back(order_id);
+            cl_order_id_vector_buy_Tulip.push_back(cl_order_id);
+            instrument_vector_buy_Tulip.push_back(instrument);
+            side_vector_buy_Tulip.push_back(side_number);
+            starting_quantity_vector_buy_Tulip.push_back(starting_quantity_number);
+            current_quantity_vector_buy_Tulip.push_back(current_quantity_number);
+            price_vector_buy_Tulip.push_back(price_number);
+            
+
+            }
+            
+        }
+        else if(side=="1"){
+            
+            int size=price_vector_sell_Tulip.size();
+            
+            for(int i=0;i<size;i++){ 
+                
+                
+                if(current_quantity_vector_sell_Tulip[i]==0){continue;}
+                if(price_number>=price_vector_sell_Tulip[i]){
+                    if(current_quantity_vector_sell_Tulip[i]>=current_quantity_number){
+                        current_quantity_vector_sell_Tulip[i]=current_quantity_vector_sell_Tulip[i]-current_quantity_number;
+                        
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_sell_Tulip[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                       
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_sell_Tulip[i];
+                        int transaction_quantity=current_quantity_vector_sell_Tulip[i];
+                        current_quantity_vector_sell_Tulip[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_sell_Tulip[i]<<","<<cl_order_id_vector_sell_Tulip[i]<<","<<instrument_vector_sell_Tulip[i]<<","<<side_vector_sell_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        
+                    }
+                }
+                if(price_number<price_vector_sell_Tulip[i]  || current_quantity_number==0){
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_buy=price_vector_buy_Tulip.size();
+            while(price_vector_buy_Tulip[index]>=price_number && index<size_buy){
+                index+=1;
+            }
+            order_id_vector_buy_Tulip.insert(order_id_vector_buy_Tulip.begin()+index,order_id);
+            cl_order_id_vector_buy_Tulip.insert(cl_order_id_vector_buy_Tulip.begin()+index,cl_order_id);
+            instrument_vector_buy_Tulip.insert(instrument_vector_buy_Tulip.begin()+index,instrument);
+            side_vector_buy_Tulip.insert(side_vector_buy_Tulip.begin()+index,side_number);
+            starting_quantity_vector_buy_Tulip.insert(starting_quantity_vector_buy_Tulip.begin()+index,starting_quantity_number);
+            current_quantity_vector_buy_Tulip.insert(current_quantity_vector_buy_Tulip.begin()+index,current_quantity_number);
+            price_vector_buy_Tulip.insert(price_vector_buy_Tulip.begin()+index,price_number);
+            
+            
+        }
+        else if(side=="2" && first_sell_Tulip){
+            if(first_buy_Tulip){
+                first_sell_Tulip=false;
+                order_id_vector_sell_Tulip.push_back(order_id);
+                cl_order_id_vector_sell_Tulip.push_back(cl_order_id);
+                instrument_vector_sell_Tulip.push_back(instrument);
+                side_vector_sell_Tulip.push_back(side_number);
+                starting_quantity_vector_sell_Tulip.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Tulip.push_back(current_quantity_number);
+                price_vector_sell_Tulip.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                size_t size=price_vector_buy_Tulip.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_buy_Tulip[i]==0){continue;}
+                    if(price_number<=price_vector_buy_Tulip[i]){
+                        
+                        if(current_quantity_number<=current_quantity_vector_buy_Tulip[i]){
+                            current_quantity_vector_buy_Tulip[i]=current_quantity_vector_buy_Tulip[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Tulip[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_buy_Tulip[i];
+                            int transaction_quantity=current_quantity_vector_buy_Tulip[i];
+                            current_quantity_vector_buy_Tulip[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                    }
+                    if(price_number>price_vector_buy_Tulip[i] || current_quantity_number==0){
+                        break;
+                    }
+                }
+                
+                
+                if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_sell_Tulip.push_back(order_id);
+                cl_order_id_vector_sell_Tulip.push_back(cl_order_id);
+                instrument_vector_sell_Tulip.push_back(instrument);
+                side_vector_sell_Tulip.push_back(side_number);
+                starting_quantity_vector_sell_Tulip.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Tulip.push_back(current_quantity_number);
+                price_vector_sell_Tulip.push_back(price_number);
+
+             }
+            
+        }
+        else{
+            
+            size_t size=price_vector_buy_Tulip.size();
+            for(int i=0;i<size;i++){
+                if(current_quantity_vector_buy_Tulip[i]==0){continue;}
+                if(price_number<=price_vector_buy_Tulip[i]){
+                    if(current_quantity_number<=current_quantity_vector_buy_Tulip[i]){
+                        current_quantity_vector_buy_Tulip[i]=current_quantity_vector_buy_Tulip[i]-current_quantity_number;
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Tulip[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_buy_Tulip[i];
+                        int transaction_quantity=current_quantity_vector_buy_Tulip[i];
+                        current_quantity_vector_buy_Tulip[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_buy_Tulip[i]<<","<<cl_order_id_vector_buy_Tulip[i]<<","<<instrument_vector_buy_Tulip[i]<<","<<side_vector_buy_Tulip[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Tulip[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                    }
+                }
+                if(price_number<price_vector_buy_Tulip[i] || current_quantity_number==0){
+                    
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_sell=price_vector_sell_Tulip.size();
+            while(price_vector_sell_Tulip[index]<=price_number && index<size_sell){
+                index+=1;
+            }  
+            order_id_vector_sell_Tulip.insert(order_id_vector_sell_Tulip.begin()+index,order_id);
+            cl_order_id_vector_sell_Tulip.insert(cl_order_id_vector_sell_Tulip.begin()+index,cl_order_id);
+            instrument_vector_sell_Tulip.insert(instrument_vector_sell_Tulip.begin()+index,instrument);
+            side_vector_sell_Tulip.insert(side_vector_sell_Tulip.begin()+index,side_number);
+            starting_quantity_vector_sell_Tulip.insert(starting_quantity_vector_sell_Tulip.begin()+index,starting_quantity_number);
+            current_quantity_vector_sell_Tulip.insert(current_quantity_vector_sell_Tulip.begin()+index,current_quantity_number);
+            price_vector_sell_Tulip.insert(price_vector_sell_Tulip.begin()+index,price_number);
+            
+        }
+        }     
+        //Orchid orders processing   
+        else{       
+        if(side=="1" && first_buy_Orchid){
+            first_buy_Orchid=false;
+            if(first_sell_Orchid){//change here if it is possible
+                order_id_vector_buy_Orchid.push_back(order_id);
+                cl_order_id_vector_buy_Orchid.push_back(cl_order_id);
+                instrument_vector_buy_Orchid.push_back(instrument);
+                side_vector_buy_Orchid.push_back(side_number);
+                starting_quantity_vector_buy_Orchid.push_back(starting_quantity_number);
+                current_quantity_vector_buy_Orchid.push_back(current_quantity_number);
+                price_vector_buy_Orchid.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                int size=price_vector_sell_Orchid.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_sell_Orchid[i]==0){continue;}
+                    if(price_number>=price_vector_sell_Orchid[i]){
+                        if(current_quantity_vector_sell_Orchid[i]>=current_quantity_number){
+                            current_quantity_vector_sell_Orchid[i]=current_quantity_vector_sell_Orchid[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+     
+                        if(current_quantity_vector_sell_Orchid[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                                           
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_sell_Orchid[i];
+                            int transaction_quantity=current_quantity_vector_sell_Orchid[i];
+                            current_quantity_vector_sell_Orchid[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                            
+                        }
+                    }
+                    if(price_number<price_vector_sell_Orchid[i]  || current_quantity_number==0){
+                        break;
+                    }
+                    
+                }
+                if(starting_quantity_number==current_quantity_number){
+                    now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                    fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+            order_id_vector_buy_Orchid.push_back(order_id);
+            cl_order_id_vector_buy_Orchid.push_back(cl_order_id);
+            instrument_vector_buy_Orchid.push_back(instrument);
+            side_vector_buy_Orchid.push_back(side_number);
+            starting_quantity_vector_buy_Orchid.push_back(starting_quantity_number);
+            current_quantity_vector_buy_Orchid.push_back(current_quantity_number);
+            price_vector_buy_Orchid.push_back(price_number);
+
+            }
+            
+        }
+        else if(side=="1"){
+            
+            int size=price_vector_sell_Orchid.size();
+            
+            for(int i=0;i<size;i++){ 
+                
+                
+                if(current_quantity_vector_sell_Orchid[i]==0){continue;}
+                if(price_number>=price_vector_sell_Orchid[i]){
+                    if(current_quantity_vector_sell_Orchid[i]>=current_quantity_number){
+                        current_quantity_vector_sell_Orchid[i]=current_quantity_vector_sell_Orchid[i]-current_quantity_number;
+                        
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_sell_Orchid[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                       
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_sell_Orchid[i];
+                        int transaction_quantity=current_quantity_vector_sell_Orchid[i];
+                        current_quantity_vector_sell_Orchid[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_sell_Orchid[i]<<","<<cl_order_id_vector_sell_Orchid[i]<<","<<instrument_vector_sell_Orchid[i]<<","<<side_vector_sell_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_sell_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        
+                    }
+                }
+                if(price_number<price_vector_sell_Orchid[i]  || current_quantity_number==0){
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_buy=price_vector_buy_Orchid.size();
+            while(price_vector_buy_Orchid[index]>=price_number && index<size_buy){
+                index+=1;
+            }
+            order_id_vector_buy_Orchid.insert(order_id_vector_buy_Orchid.begin()+index,order_id);
+            cl_order_id_vector_buy_Orchid.insert(cl_order_id_vector_buy_Orchid.begin()+index,cl_order_id);
+            instrument_vector_buy_Orchid.insert(instrument_vector_buy_Orchid.begin()+index,instrument);
+            side_vector_buy_Orchid.insert(side_vector_buy_Orchid.begin()+index,side_number);
+            starting_quantity_vector_buy_Orchid.insert(starting_quantity_vector_buy_Orchid.begin()+index,starting_quantity_number);
+            current_quantity_vector_buy_Orchid.insert(current_quantity_vector_buy_Orchid.begin()+index,current_quantity_number);
+            price_vector_buy_Orchid.insert(price_vector_buy_Orchid.begin()+index,price_number);
+            
+            
+        }
+        else if(side=="2" && first_sell_Orchid){
+            if(first_buy_Orchid){
+                first_sell_Orchid=false;
+                order_id_vector_sell_Orchid.push_back(order_id);
+                cl_order_id_vector_sell_Orchid.push_back(cl_order_id);
+                instrument_vector_sell_Orchid.push_back(instrument);
+                side_vector_sell_Orchid.push_back(side_number);
+                starting_quantity_vector_sell_Orchid.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Orchid.push_back(current_quantity_number);
+                price_vector_sell_Orchid.push_back(price_number);
+                now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }else{
+                
+                size_t size=price_vector_buy_Orchid.size();
+                
+                for(int i=0;i<size;i++){
+                    if(current_quantity_vector_buy_Orchid[i]==0){continue;}
+                    if(price_number<=price_vector_buy_Orchid[i]){
+                        
+                        if(current_quantity_number<=current_quantity_vector_buy_Orchid[i]){
+                            current_quantity_vector_buy_Orchid[i]=current_quantity_vector_buy_Orchid[i]-current_quantity_number;
+                            int transaction_quantity=current_quantity_number;
+                            current_quantity_number=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Orchid[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                        }else{
+                            current_quantity_number=current_quantity_number-current_quantity_vector_buy_Orchid[i];
+                            int transaction_quantity=current_quantity_vector_buy_Orchid[i];
+                            current_quantity_vector_buy_Orchid[i]=0;
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+                    }
+                    if(price_number>price_vector_buy_Orchid[i] || current_quantity_number==0){
+                        break;
+                    }
+                }
+                
+                
+                if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+                }
+                order_id_vector_sell_Orchid.push_back(order_id);
+                cl_order_id_vector_sell_Orchid.push_back(cl_order_id);
+                instrument_vector_sell_Orchid.push_back(instrument);
+                side_vector_sell_Orchid.push_back(side_number);
+                starting_quantity_vector_sell_Orchid.push_back(starting_quantity_number);
+                current_quantity_vector_sell_Orchid.push_back(current_quantity_number);
+                price_vector_sell_Orchid.push_back(price_number);
+
+             }
+            
+        }
+        else{
+            
+            size_t size=price_vector_buy_Orchid.size();
+            for(int i=0;i<size;i++){
+                if(current_quantity_vector_buy_Orchid[i]==0){continue;}
+                if(price_number<=price_vector_buy_Orchid[i]){
+                    if(current_quantity_number<=current_quantity_vector_buy_Orchid[i]){
+                        current_quantity_vector_buy_Orchid[i]=current_quantity_vector_buy_Orchid[i]-current_quantity_number;
+                        int transaction_quantity=current_quantity_number;
+                        current_quantity_number=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Fill "<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        if(current_quantity_vector_buy_Orchid[i]!=0){
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Pfill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }else{
+                            now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                            fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                        }
+
+
+
+                    }else{
+                        current_quantity_number=current_quantity_number-current_quantity_vector_buy_Orchid[i];
+                        int transaction_quantity=current_quantity_vector_buy_Orchid[i];
+                        current_quantity_vector_buy_Orchid[i]=0;
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"Pfill "<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<"\n";
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id_vector_buy_Orchid[i]<<","<<cl_order_id_vector_buy_Orchid[i]<<","<<instrument_vector_buy_Orchid[i]<<","<<side_vector_buy_Orchid[i]<<","<<"Fill"<<","<<transaction_quantity<<","<<price_vector_buy_Orchid[i]<<","<<"NA"<<","<<formattedTime<<endl;
+                    }
+                }
+                if(price_number<price_vector_buy_Orchid[i] || current_quantity_number==0){
+                    
+                    break;
+                }
+            }
+            if(starting_quantity_number==current_quantity_number){
+                        now = std::chrono::system_clock::now();currentTime = std::chrono::system_clock::to_time_t(now);localtime_s(&localTimeInfo, &currentTime);milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;std::strftime(buffer, sizeof(buffer), "%Y%m%d-%H%M%S", &localTimeInfo);formattedTime = string(buffer) + "." + to_string(milliseconds.count());
+                        fout<<order_id<<","<<cl_order_id<<","<<instrument<<","<<side_number<<","<<"New "<<","<<starting_quantity_number<<","<<price_number<<","<<"NA"<<","<<formattedTime<<"\n";
+            }
+            
+            int index=0;
+            size_t size_sell=price_vector_sell_Orchid.size();
+            while(price_vector_sell_Orchid[index]<=price_number && index<size_sell){
+                index+=1;
+            }  
+            order_id_vector_sell_Orchid.insert(order_id_vector_sell_Orchid.begin()+index,order_id);
+            cl_order_id_vector_sell_Orchid.insert(cl_order_id_vector_sell_Orchid.begin()+index,cl_order_id);
+            instrument_vector_sell_Orchid.insert(instrument_vector_sell_Orchid.begin()+index,instrument);
+            side_vector_sell_Orchid.insert(side_vector_sell_Orchid.begin()+index,side_number);
+            starting_quantity_vector_sell_Orchid.insert(starting_quantity_vector_sell_Orchid.begin()+index,starting_quantity_number);
+            current_quantity_vector_sell_Orchid.insert(current_quantity_vector_sell_Orchid.begin()+index,current_quantity_number);
+            price_vector_sell_Orchid.insert(price_vector_sell_Orchid.begin()+index,price_number);
+            
+        }
+        }
+           
+    ++orderid;
+    }
+    
+    fout.close();
+    file.close();
+    return 0;
+
+}
+
+
